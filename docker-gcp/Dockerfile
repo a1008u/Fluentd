@@ -1,22 +1,43 @@
-FROM ubuntu:xenial
+FROM fluentd:latest
 
-RUN apt-get update && apt-get -y upgrade
-RUN apt-get install sudo
-RUN apt-get install -y curl
-RUN apt-get install -y vim
-RUN apt-get install -y git
+USER root
+RUN apk update && apk add python \
+    python-dev  \
+    tzdata && \
+    cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+    apk del tzdata && \
+    rm -rf /var/cache/apk/*
 
-#デフォルトで24224を使うのでポートを空けておく
-EXPOSE 24224
+ENV PYTHON_PIP_VERSION 19.1.1
 
-# fluentd(td-agent)のインストール
-RUN curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-xenial-td-agent3.sh | sh
+RUN set -ex; \
+	\
+	wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
+	\
+	python get-pip.py \
+		--disable-pip-version-check \
+		--no-cache-dir \
+		"pip==$PYTHON_PIP_VERSION" \
+	; \
+	pip --version; \
+	\
+	find /usr/local -depth \
+		\( \
+			\( -type d -a \( -name test -o -name tests \) \) \
+			-o \
+			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+		\) -exec rm -rf '{}' +; \
+rm -f get-pip.py
 
-# python2.7
-RUN apt-get -y install python2.7
-RUN apt install -y python-pip python-dev
+RUN apk add sudo \
+ curl \
+ vim \
+ git
 
-# GCPのダウンロード
+# Fluentd GCSプラグインインストール
+RUN gem install fluent-plugin-gcs -v "0.4.0"
+
+# # GCPのダウンロード
 RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz
 
 # パッケージのダウンロード
@@ -27,6 +48,6 @@ RUN mkdir -p /usr/local/gcloud \
 # パスを通す
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
-# fluentd-plugin-bigqueryのインストール
-RUN /opt/td-agent/embedded/bin/fluent-gem install --no-document specific_install
-RUN /opt/td-agent/embedded/bin/fluent-gem specific_install https://github.com/kaizenplatform/fluent-plugin-bigquery.git
+
+COPY my.json /
+ENV GOOGLE_APPLICATION_CREDENTIALS my.json

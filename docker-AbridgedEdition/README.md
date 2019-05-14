@@ -1,6 +1,6 @@
 ```
 docker-compose up --build -d &&
-docker exec -it docker-abridgededition_fluentd_1 /bin/sh
+docker exec -it  docker-abridgededition_fluentd_1 sh
 
 docker stop docker-abridgededition_fluentd_1 &&
 docker rm docker-abridgededition_fluentd_1
@@ -38,7 +38,7 @@ echo '{"json":"message dayo"}' | fluent-cat apache.access
 ```
 
 ```
-fluentd -c ./fluentd/etc/fluentd.conf -vv && fluent-cat apache.access
+fluentd -c ./fluentd/etc/fluentd.conf -vv && fluent-cat test
 ```
 
 ```
@@ -58,3 +58,8 @@ fluentd -c ./fluentd/etc/fluentd.conf -vv && fluent-cat apache.access
 fluentd -c ./fluentd/etc/fluentd.conf -vv && 
 curl http://localhost/index.html -F 'json={"log":"test_dayo"}'
 ```
+
+
+ echo "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326" > /fluentd/file/tmp.log
+
+  echo "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326" >> /fluentd/file/tmp.log
