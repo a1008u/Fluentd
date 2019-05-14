@@ -3,6 +3,11 @@ FROM fluentd:latest
 USER root
 RUN apk update && apk add python \
     python-dev  \
+		make  \
+		gcc  \
+		g++  \
+		ruby-dev \
+		libc-dev  \
     tzdata && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     apk del tzdata && \
@@ -35,7 +40,9 @@ RUN apk add sudo \
  git
 
 # Fluentd GCSプラグインインストール
-RUN gem install fluent-plugin-gcs -v "0.4.0"
+ENV CFLAGS -Wno-error
+ENV CXXFLAGS -Wno-error
+RUN gem install fluent-plugin-gcs -v "0.4.0" && gem install fluent-plugin-google-cloud
 
 # # GCPのダウンロード
 RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz
